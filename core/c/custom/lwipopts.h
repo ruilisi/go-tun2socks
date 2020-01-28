@@ -36,7 +36,6 @@
 #define NO_SYS 1
 #define LWIP_TIMERS 1
 
-#define IP_DEFAULT_TTL 64
 #define LWIP_ARP 0
 #define ARP_QUEUEING 0
 #define IP_FORWARD 0
@@ -62,31 +61,23 @@
 #define LWIP_IPV6_MLD 0
 #define LWIP_IPV6_AUTOCONFIG 1
 
-// disable checksum checks
-#define CHECKSUM_CHECK_IP 0
-#define CHECKSUM_CHECK_UDP 0
-#define CHECKSUM_CHECK_TCP 0
-#define CHECKSUM_CHECK_ICMP 0
-#define CHECKSUM_CHECK_ICMP6 0
-
-#define LWIP_CHECKSUM_ON_COPY 1
-
-#define MEMP_NUM_TCP_PCB_LISTEN 1
-#define MEMP_NUM_TCP_PCB 16
-#define MEMP_NUM_UDP_PCB 1
-
-/*
-#define TCP_LISTEN_BACKLOG 1
-#define TCP_DEFAULT_LISTEN_BACKLOG 0xff
-#define LWIP_TCP_TIMESTAMPS 1
-*/
+#define MEMP_NUM_TCP_PCB_LISTEN 16
+#define MEMP_NUM_TCP_PCB 1024
+#define MEMP_NUM_UDP_PCB 512
+#define MEMP_NUM_TCP_SEG 128
 
 #define TCP_MSS 1460
-#define TCP_WND 32 * 1024
-#define TCP_SND_BUF (TCP_WND)
+#define TCP_SND_BUF 16384
+#define TCP_SND_QUEUELEN (4 * (TCP_SND_BUF)/(TCP_MSS))
+
+#define LWIP_TCP_SACK_OUT 1
+
+#define LWIP_WND_SCALE                  1
+#define TCP_RCV_SCALE                   2
 
 #define MEM_LIBC_MALLOC 1
 #define MEMP_MEM_MALLOC 1
+#define MEM_ALIGNMENT 4
 #define MEM_SIZE 128 * 1024
 
 #define SYS_LIGHTWEIGHT_PROT 0
