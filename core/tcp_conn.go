@@ -8,6 +8,7 @@ tcp_sndbuf_cgo(struct tcp_pcb *pcb)
 {
 	return tcp_sndbuf(pcb);
 }
+
 void
 tcp_nagle_disable_cgo(struct tcp_pcb *pcb)
 {
@@ -99,6 +100,9 @@ func newTCPConn(pcb *C.struct_tcp_pcb, handler TCPConnHandler) (TCPConn, error) 
 	// From badvpn-tun2socks
 	C.tcp_nagle_disable_cgo(pcb)
 	C.tcp_keepalive_settings_cgo(pcb)
+
+	// From badvpn-tun2socks
+	C.tcp_nagle_disable_cgo(pcb)
 
 	// Register callbacks.
 	setTCPRecvCallback(pcb)
