@@ -3,7 +3,7 @@
 package core
 
 /*
-#cgo CFLAGS: -I./c/include
+#cgo CFLAGS: -I./c/custom -I./c/include
 #include "lwip/sys.h"
 #include "lwip/init.h"
 */

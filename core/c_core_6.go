@@ -1,6 +1,7 @@
 package core
 
 /*
+#cgo CFLAGS: -I./c/custom -I./c/include
 #include "c/core/ipv6/dhcp6.c"
 #include "c/core/ipv6/ethip6.c"
 #include "c/core/ipv6/icmp6.c"
