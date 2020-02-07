@@ -41,8 +41,6 @@ import (
 
 type tcpConnState uint
 
-var tcpConns sync.Map
-
 const (
 	// tcpNewConn is the initial state.
 	tcpNewConn tcpConnState = iota
