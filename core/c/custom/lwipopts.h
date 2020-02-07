@@ -71,6 +71,7 @@
 #define TCP_SND_QUEUELEN (4 * (TCP_SND_BUF)/(TCP_MSS))
 
 #define LWIP_TCP_SACK_OUT 1
+#define LWIP_TCP_KEEPALIVE 1
 
 #define LWIP_WND_SCALE                  1
 #define TCP_RCV_SCALE                   2

@@ -101,6 +101,7 @@ func newTCPConn(pcb *C.struct_tcp_pcb, handler TCPConnHandler) (TCPConn, error) 
 
 	// From badvpn-tun2socks
 	C.tcp_nagle_disable_cgo(pcb)
+	C.tcp_keepalive_settings_cgo(pcb)
 
 	// Register callbacks.
 	setTCPRecvCallback(pcb)
