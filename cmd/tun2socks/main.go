@@ -11,11 +11,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/eycorsican/go-tun2socks/common/dns/blocker"
-	"github.com/eycorsican/go-tun2socks/common/log"
-	_ "github.com/eycorsican/go-tun2socks/common/log/simple" // Register a simple logger.
-	"github.com/eycorsican/go-tun2socks/core"
-	"github.com/eycorsican/go-tun2socks/tun"
+	"github.com/ruilisi/go-tun2socks/common/dns/blocker"
+	"github.com/ruilisi/go-tun2socks/common/log"
+	_ "github.com/ruilisi/go-tun2socks/common/log/simple" // Register a simple logger.
+	"github.com/ruilisi/go-tun2socks/core"
+	"github.com/ruilisi/go-tun2socks/tun"
 )
 
 var version = "undefined"

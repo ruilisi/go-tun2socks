@@ -5,8 +5,8 @@ package main
 import (
 	"flag"
 
-	"github.com/eycorsican/go-tun2socks/core"
-	"github.com/eycorsican/go-tun2socks/proxy/dnsfallback"
+	"github.com/ruilisi/go-tun2socks/core"
+	"github.com/ruilisi/go-tun2socks/proxy/dnsfallback"
 )
 
 func init() {

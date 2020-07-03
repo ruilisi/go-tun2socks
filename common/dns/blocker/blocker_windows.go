@@ -10,7 +10,7 @@ import (
 
 	"golang.org/x/sys/windows"
 
-	"github.com/eycorsican/go-tun2socks/common/log"
+	"github.com/ruilisi/go-tun2socks/common/log"
 )
 
 func BlockOutsideDns(tunName string) error {
