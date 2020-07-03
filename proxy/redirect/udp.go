@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/eycorsican/go-tun2socks/common/log"
-	"github.com/eycorsican/go-tun2socks/core"
+	"github.com/ruilisi/go-tun2socks/common/log"
+	"github.com/ruilisi/go-tun2socks/core"
 )
 
 type udpHandler struct {
