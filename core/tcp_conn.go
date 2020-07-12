@@ -15,8 +15,8 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/djherbis/buffer"
 	"github.com/djherbis/nio"
+	"github.com/ruilisi/go-tun2socks/buffer"
 )
 
 type tcpConnState uint
