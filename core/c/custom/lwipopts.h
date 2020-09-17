@@ -62,6 +62,13 @@
 #define LWIP_IPV6_MLD 0
 #define LWIP_IPV6_AUTOCONFIG 1
 
+// disable checksum checks
+#define CHECKSUM_CHECK_IP 0
+#define CHECKSUM_CHECK_UDP 0
+#define CHECKSUM_CHECK_TCP 0
+#define CHECKSUM_CHECK_ICMP 0
+#define CHECKSUM_CHECK_ICMP6 0
+
 /* 32bit and 64bit CPU */
 #if INTPTR_MAX == INT32_MAX
 #define CPU_WORD_LEN     32
