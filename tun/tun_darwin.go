@@ -31,10 +31,12 @@ func isIPv6(ip net.IP) bool {
 	return false
 }
 
-func randomIPv6() string {
+func randomIPv6LinkLocalAddr() string {
 	size := 16
 	ip := make([]byte, size)
-	for i := 0; i < size; i++ {
+	ip[0] = 0xfe
+	ip[1] = 0x80
+	for i := 8; i < size; i++ {
 		ip[i] = byte(rand.Intn(256))
 	}
 	return net.IP(ip).To16().String()
@@ -69,7 +71,7 @@ func OpenTunDevice(name, addr, gw, mask string, dnsServers []string, persist boo
 		if err != nil {
 			return nil, genErr(out, err)
 		}
-		params = fmt.Sprintf("%s inet6 %s/64", name, randomIPv6())
+		params = fmt.Sprintf("%s inet6 %s/64", name, randomIPv6LinkLocalAddr())
 		out, err = exec.Command("ifconfig", strings.Split(params, " ")...).Output()
 		if err != nil {
 			return nil, genErr(out, err)
