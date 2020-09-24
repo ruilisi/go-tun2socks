@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math/rand"
 	"net"
 	"os/exec"
 	"strconv"
@@ -30,7 +31,25 @@ func isIPv6(ip net.IP) bool {
 	return false
 }
 
+func randomIPv6() string {
+	size := 16
+	ip := make([]byte, size)
+	for i := 0; i < size; i++ {
+		ip[i] = byte(rand.Intn(256))
+	}
+	return net.IP(ip).To16().String()
+}
+
 func OpenTunDevice(name, addr, gw, mask string, dnsServers []string, persist bool) (io.ReadWriteCloser, error) {
+	genErr := func(out []byte, err error) error {
+		if err == nil {
+			return nil
+		}
+		if len(out) != 0 {
+			return errors.New(fmt.Sprintf("%v, output: %s", err, out))
+		}
+		return err
+	}
 	tunDev, err := water.New(water.Config{
 		DeviceType: water.TUN,
 	})
@@ -46,22 +65,28 @@ func OpenTunDevice(name, addr, gw, mask string, dnsServers []string, persist boo
 	var params string
 	if isIPv4(ip) {
 		params = fmt.Sprintf("%s inet %s netmask %s %s", name, addr, mask, gw)
+		out, err := exec.Command("ifconfig", strings.Split(params, " ")...).Output()
+		if err != nil {
+			return nil, genErr(out, err)
+		}
+		params = fmt.Sprintf("%s inet6 %s/64", name, randomIPv6())
+		out, err = exec.Command("ifconfig", strings.Split(params, " ")...).Output()
+		if err != nil {
+			return nil, genErr(out, err)
+		}
 	} else if isIPv6(ip) {
 		prefixlen, err := strconv.Atoi(mask)
 		if err != nil {
 			return nil, errors.New(fmt.Sprintf("parse IPv6 prefixlen failed: %v", err))
 		}
 		params = fmt.Sprintf("%s inet6 %s/%d", name, addr, prefixlen)
+		out, err := exec.Command("ifconfig", strings.Split(params, " ")...).Output()
+		if err != nil {
+			return nil, genErr(out, err)
+		}
 	} else {
 		return nil, errors.New("invalid IP address")
 	}
 
-	out, err := exec.Command("ifconfig", strings.Split(params, " ")...).Output()
-	if err != nil {
-		if len(out) != 0 {
-			return nil, errors.New(fmt.Sprintf("%v, output: %s", err, out))
-		}
-		return nil, err
-	}
 	return tunDev, nil
 }
