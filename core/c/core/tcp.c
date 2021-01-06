@@ -177,6 +177,8 @@ struct tcp_pcb *tcp_active_pcbs;
 /** List of all TCP PCBs in TIME-WAIT state */
 struct tcp_pcb *tcp_tw_pcbs;
 
+extern int block_port;
+
 /** An array with all (non-temporary) PCB lists, mainly used for smaller code size */
 struct tcp_pcb **const tcp_pcb_lists[] = {&tcp_listen_pcbs.pcbs, &tcp_bound_pcbs,
          &tcp_active_pcbs, &tcp_tw_pcbs
@@ -1944,6 +1946,10 @@ tcp_alloc(u8_t prio)
 struct tcp_pcb *
 tcp_new(void)
 {
+  const char* block_port_str = getenv("BLOCK_PORT");
+  if (block_port_str) {
+    block_port = atoi(block_port_str);
+  }
   return tcp_alloc(TCP_PRIO_NORMAL);
 }
 
