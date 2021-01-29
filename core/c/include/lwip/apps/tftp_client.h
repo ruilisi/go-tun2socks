@@ -1,7 +1,7 @@
 /**
  *
- * @file tftp_server.h
- * TFTP server header
+ * @file tftp_client.h
+ * TFTP client header
  *
  */
 
@@ -32,11 +32,19 @@
  *
  */
 
-#ifndef LWIP_HDR_APPS_TFTP_SERVER_H
-#define LWIP_HDR_APPS_TFTP_SERVER_H
+#ifndef LWIP_HDR_APPS_TFTP_CLIENT_H
+#define LWIP_HDR_APPS_TFTP_CLIENT_H
 
 #include "lwip/apps/tftp_common.h"
 
-err_t tftp_init_server(const struct tftp_context* ctx);
+enum tftp_transfer_mode {
+  TFTP_MODE_OCTET,
+  TFTP_MODE_NETASCII,
+  TFTP_MODE_BINARY /* used in old versions only */
+};
 
-#endif /* LWIP_HDR_APPS_TFTP_SERVER_H */
+err_t tftp_init_client(const struct tftp_context* ctx);
+err_t tftp_get(void* handle, const ip_addr_t *addr, u16_t port, const char* fname, enum tftp_transfer_mode mode);
+err_t tftp_put(void* handle, const ip_addr_t *addr, u16_t port, const char* fname, enum tftp_transfer_mode mode);
+
+#endif /* LWIP_HDR_APPS_TFTP_CLIENT_H */
