@@ -1,7 +1,7 @@
 package core
 
 /*
-#cgo CFLAGS: -I./c/include
+#cgo CFLAGS: -I./c/custom -I./c/include
 #include "lwip/pbuf.h"
 #include "lwip/tcp.h"
 
@@ -85,43 +85,62 @@ func peekNextProto(ipv ipver, p []byte) (proto, error) {
 }
 
 func input(pkt []byte) (int, error) {
-	if len(pkt) == 0 {
-		return 0, nil
-	}
-
-	ipv, err := peekIPVer(pkt)
-	if err != nil {
-		return 0, err
-	}
-
-	nextProto, err := peekNextProto(ipv, pkt)
-	if err != nil {
-		return 0, err
-	}
-
 	lwipMutex.Lock()
 	defer lwipMutex.Unlock()
+	pktLen := len(pkt)
+	if pktLen == 0 {
+		return 0, nil
+	}
+	remaining := pktLen
+	startPos := 0
+	singleCopyLen := 0
 
 	var buf *C.struct_pbuf
+	var newBuf *C.struct_pbuf
+	var ierr C.err_t = C.ERR_ARG // initial value to free pbuf if errors occur
 
-	if nextProto == proto_udp && !(moreFrags(ipv, pkt) || fragOffset(ipv, pkt) > 0) {
-		// Copying data is not necessary for unfragmented UDP packets, and we would like to
-		// have all data in one pbuf.
-		buf = C.pbuf_alloc_reference(unsafe.Pointer(&pkt[0]), C.u16_t(len(pkt)), C.PBUF_REF)
-	} else {
-		// TODO Copy the data only when lwip need to keep it, e.g. in
-		// case we are returning ERR_CONN in tcpRecvFn.
-		//
-		// Allocating from PBUF_POOL results in a pbuf chain that may
-		// contain multiple pbufs.
-		buf = C.pbuf_alloc(C.PBUF_RAW, C.u16_t(len(pkt)), C.PBUF_POOL)
-		C.pbuf_take(buf, unsafe.Pointer(&pkt[0]), C.u16_t(len(pkt)))
+	// TODO Copy the data only when lwip need to keep it, e.g. in
+	// case we are returning ERR_CONN in tcpRecvFn.
+	//
+	// XXX: always copy since the address might got moved to other location during GC
+
+	// PBUF_POOL  pbuf payload refers to RAM. This one comes from a pool and should be used for RX.
+	// Payload can be chained (scatter-gather RX) but like PBUF_RAM, struct pbuf and its payload are allocated in one piece of contiguous memory
+	// (so the first payload byte can be calculated from struct pbuf). Don't use this for TX, if the pool becomes empty e.g. because of TCP queuing,
+	// you are unable to receive TCP acks!
+
+	buf = C.pbuf_alloc(C.PBUF_RAW, C.u16_t(pktLen), C.PBUF_POOL)
+	newBuf = buf
+	defer func(pb *C.struct_pbuf, err *C.err_t) {
+		if pb != nil && *err != C.ERR_OK {
+			C.pbuf_free(pb)
+			pb = nil
+		}
+	}(newBuf, &ierr)
+	if newBuf == nil {
+		return 0, errors.New("lwip Input() pbuf_alloc returns NULL")
+	}
+	for remaining > 0 {
+		if remaining > int(newBuf.tot_len) {
+			singleCopyLen = int(newBuf.tot_len)
+		} else {
+			singleCopyLen = remaining
+		}
+		r := C.pbuf_take_at(newBuf, unsafe.Pointer(&pkt[startPos]), C.u16_t(singleCopyLen), C.u16_t(startPos))
+		if r == C.ERR_MEM {
+			return 0, errors.New("Input pbuf_take_at this should not happen")
+		}
+		startPos += singleCopyLen
+		remaining -= singleCopyLen
+	}
+	newBuf = C.pbuf_coalesce(buf, C.PBUF_RAW)
+	if newBuf.next != nil {
+		return 0, errors.New("lwip Input() pbuf_coalesce failed")
 	}
 
-	ierr := C.input(buf)
+	ierr = C.input(newBuf)
 	if ierr != C.ERR_OK {
-		C.pbuf_free(buf)
 		return 0, errors.New("packet not handled")
 	}
-	return len(pkt), nil
+	return pktLen, nil
 }
