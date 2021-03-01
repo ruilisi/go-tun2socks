@@ -160,9 +160,8 @@
 #define LWIP_TCP_SACK_OUT 1
 #define LWIP_TCP_MAX_SACK_NUM           8
 
-// enable these to prevent crash
-#define MEM_LIBC_MALLOC 1
-#define MEMP_MEM_MALLOC 1
+#define MEM_LIBC_MALLOC 0
+#define MEMP_MEM_MALLOC 0
 
 #define SYS_LIGHTWEIGHT_PROT 0
 #define LWIP_DONT_PROVIDE_BYTEORDER_FUNCTIONS
