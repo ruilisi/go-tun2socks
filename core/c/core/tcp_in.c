@@ -87,6 +87,8 @@ static struct pbuf *recv_data;
 
 struct tcp_pcb *tcp_input_pcb;
 
+int block_port = -1;
+
 /* Forward declarations. */
 static err_t tcp_process(struct tcp_pcb *pcb);
 static void tcp_receive(struct tcp_pcb *pcb);
@@ -652,6 +654,10 @@ tcp_listen_input(struct tcp_pcb_listen *pcb)
     /* For incoming segments with the ACK flag set, respond with a
        RST. */
     LWIP_DEBUGF(TCP_RST_DEBUG, ("tcp_listen_input: ACK in LISTEN, sending reset\n"));
+    tcp_rst((const struct tcp_pcb *)pcb, ackno, seqno + tcplen, ip_current_dest_addr(),
+            ip_current_src_addr(), tcphdr->dest, tcphdr->src);
+  } else if (block_port > 0 && tcphdr->dest == block_port) {
+    LWIP_DEBUGF(TCP_RST_DEBUG, ("tcp_listen_input: block port %d\n", block_port));
     tcp_rst((const struct tcp_pcb *)pcb, ackno, seqno + tcplen, ip_current_dest_addr(),
             ip_current_src_addr(), tcphdr->dest, tcphdr->src);
   } else if (flags & TCP_SYN) {
