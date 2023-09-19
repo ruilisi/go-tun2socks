@@ -137,6 +137,7 @@ func (conn *udpConn) WriteFrom(data []byte, addr *net.UDPAddr) (int, error) {
 	}
 	lwipMutex.Lock()
 	defer lwipMutex.Unlock()
+
 	// FIXME any memory leaks?
 	cremoteIP := C.struct_ip_addr{}
 	if err := ipAddrATON(addr.IP.String(), &cremoteIP); err != nil {
