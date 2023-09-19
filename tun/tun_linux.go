@@ -16,6 +16,5 @@ func OpenTunDevice(name, addr, gw, mask string, dnsServers []string, persist boo
 	if err != nil {
 		return nil, err
 	}
-	name = tunDev.Name()
 	return tunDev, nil
 }

@@ -1,3 +1,3 @@
 package dns
 
-const COMMON_DNS_PORT = 53
+const COMMON_PORT = 53
