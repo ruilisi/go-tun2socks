@@ -41,3 +41,7 @@ func Fatalf(msg string, args ...interface{}) {
 		logger.Fatalf(msg, args...)
 	}
 }
+
+func Access(process, outbound, network, localAddr, target string) {
+	Infof("[%v] [%v] [%v] %s", outbound, network, process, target)
+}
