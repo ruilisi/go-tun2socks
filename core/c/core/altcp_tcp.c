@@ -162,25 +162,21 @@ static void
 altcp_tcp_remove_callbacks(struct tcp_pcb *tpcb)
 {
   tcp_arg(tpcb, NULL);
-  if (tpcb->state != LISTEN) {
-    tcp_recv(tpcb, NULL);
-    tcp_sent(tpcb, NULL);
-    tcp_err(tpcb, NULL);
-    tcp_poll(tpcb, NULL, tpcb->pollinterval);
-  }
+  tcp_recv(tpcb, NULL);
+  tcp_sent(tpcb, NULL);
+  tcp_err(tpcb, NULL);
+  tcp_poll(tpcb, NULL, tpcb->pollinterval);
 }
 
 static void
 altcp_tcp_setup_callbacks(struct altcp_pcb *conn, struct tcp_pcb *tpcb)
 {
   tcp_arg(tpcb, conn);
-  /* this might be called for LISTN when close fails... */
-  if (tpcb->state != LISTEN) {
-    tcp_recv(tpcb, altcp_tcp_recv);
-    tcp_sent(tpcb, altcp_tcp_sent);
-    tcp_err(tpcb, altcp_tcp_err);
-    /* tcp_poll is set when interval is set by application */
-  }
+  tcp_recv(tpcb, altcp_tcp_recv);
+  tcp_sent(tpcb, altcp_tcp_sent);
+  tcp_err(tpcb, altcp_tcp_err);
+  /* tcp_poll is set when interval is set by application */
+  /* listen is set totally different :-) */
 }
 
 static void

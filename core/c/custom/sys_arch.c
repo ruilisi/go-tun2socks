@@ -43,16 +43,33 @@
   
   static DWORD netconn_sem_tls_index;
   
+  static HCRYPTPROV hcrypt;
+  
   u32_t
   sys_win_rand(void)
   {
-    return (u32_t)rand();
+    u32_t ret;
+    if (CryptGenRandom(hcrypt, sizeof(ret), (BYTE*)&ret)) {
+      return ret;
+    }
+    LWIP_ASSERT("CryptGenRandom failed", 0);
+    return 0;
   }
   
   static void
   sys_win_rand_init(void)
   {
-    srand((unsigned)time(NULL));
+    if (!CryptAcquireContext(&hcrypt, NULL, NULL, PROV_RSA_FULL, 0)) {
+      DWORD err = GetLastError();
+      LWIP_PLATFORM_DIAG(("CryptAcquireContext failed with error %d, trying to create NEWKEYSET", (int)err));
+      if(!CryptAcquireContext(&hcrypt, NULL, NULL, PROV_RSA_FULL, CRYPT_NEWKEYSET)) {
+        char errbuf[128];
+        err = GetLastError();
+        snprintf(errbuf, sizeof(errbuf), "CryptAcquireContext failed with error %d", (int)err);
+        LWIP_UNUSED_ARG(err);
+        LWIP_ASSERT(errbuf, 0);
+      }
+    }
   }
   
   static void
