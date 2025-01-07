@@ -208,7 +208,29 @@
         now = now * info.numer / info.denom / NSEC_PER_MSEC;
         return (u32_t)(now);
     }
+#elif defined(__ANDROID__) || defined(ANDROID)
+
+#include <time.h>
+
+u32_t
+sys_now(void)
+{
+  struct timespec ts;
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  return (u32_t)(ts.tv_sec * 1000L + ts.tv_nsec / 1000000L);
+}
+
+u32_t
+sys_jiffies(void)
+{
+  struct timespec ts;
+
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  return (u32_t)(ts.tv_sec * 1000000000L + ts.tv_nsec);
+}
+
 #elif __linux
+    // linux
     #include <sys/time.h>
     u32_t sys_now(void)
     {
@@ -216,6 +238,7 @@
         gettimeofday(&te, NULL);
         return te.tv_sec*1000LL + te.tv_usec/1000;
     }
+
 #elif __unix // all unices not caught above
     // Unix
 #elif __posix

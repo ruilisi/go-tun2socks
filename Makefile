@@ -17,7 +17,7 @@ XBUILD_OTHERS_CMD="cd $(BUILDDIR) && $(XGOCMD) -ldflags $(RELEASE_LDFLAGS) -tags
 
 all: build
 
-build:
+build::
 	mkdir -p $(BUILDDIR)
 	eval $(BUILD_CMD)
 

@@ -142,7 +142,7 @@ func main() {
 	}
 
 	// Setup TCP/IP stack.
-	lwipWriter := core.NewLWIPStack().(io.Writer)
+	lwipWriter := core.NewLWIPStack(true, true).(io.Writer)
 
 	// Register TCP and UDP handlers to handle accepted connections.
 	if creater, found := handlerCreater[*args.ProxyType]; found {
