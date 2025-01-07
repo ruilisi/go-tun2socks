@@ -94,7 +94,7 @@
  *
  * To save memory, the maximum tag length is limited (@see LWIP_HTTPD_MAX_TAG_NAME_LEN).
  * To save memory, the maximum insertion string length is limited (@see
- * LWIP_HTTPD_MAX_TAG_INSERT_LEN). If this is not enought, @ref LWIP_HTTPD_SSI_MULTIPART
+ * LWIP_HTTPD_MAX_TAG_INSERT_LEN). If this is not enough, @ref LWIP_HTTPD_SSI_MULTIPART
  * can be used.
  */
 #if !defined LWIP_HTTPD_SSI || defined __DOXYGEN__
@@ -373,6 +373,16 @@
  */
 #if !defined LWIP_HTTPD_FILE_STATE || defined __DOXYGEN__
 #define LWIP_HTTPD_FILE_STATE         0
+#endif
+
+/** Set this to 1 to add the pextension field to the fs_file structure.
+ * This is included here to retain compatibility with legacy code that
+ * relies on the presence of the pextension field.
+ * New code should use LWIP_HTTPD_FILE_STATE instead.
+ * This option may be removed in a future version of lwip.
+ */
+#if !defined LWIP_HTTPD_FILE_EXTENSION || defined __DOXYGEN__
+#define LWIP_HTTPD_FILE_EXTENSION     0
 #endif
 
 /** HTTPD_PRECALCULATED_CHECKSUM==1: include precompiled checksums for
