@@ -2,6 +2,7 @@ package core
 
 /*
 #cgo CFLAGS: -I./c/custom -I./c/include
+#include <stdint.h>
 #include "c/core/ipv4/acd.c"
 #include "c/core/ipv4/autoip.c"
 #include "c/core/ipv4/dhcp.c"

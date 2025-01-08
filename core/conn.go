@@ -25,9 +25,6 @@ type TCPConn interface {
 	// connection.
 	LocalClosed() error
 
-	// Poll will be periodically called by TCP timers.
-	Poll() error
-
 	// RemoteAddr returns the destination network address.
 	RemoteAddr() net.Addr
 

@@ -16,6 +16,8 @@ import (
 	"encoding/binary"
 	"errors"
 	"unsafe"
+
+	"github.com/ruilisi/go-tun2socks/common/log"
 )
 
 type ipver byte
@@ -113,11 +115,15 @@ func input(pkt []byte) (int, error) {
 	newBuf = buf
 	defer func(pb *C.struct_pbuf, err *C.err_t) {
 		if pb != nil && *err != C.ERR_OK {
+			lwipMutex.Lock()
+			log.Infof("lwip Input() pbuf_free(deferred func call)")
 			C.pbuf_free(pb)
 			pb = nil
+			lwipMutex.Unlock()
 		}
 	}(newBuf, &ierr)
 	if newBuf == nil {
+		log.Errorf("lwip Input() pbuf_alloc returns NULL")
 		return 0, errors.New("lwip Input() pbuf_alloc returns NULL")
 	}
 	for remaining > 0 {
@@ -128,6 +134,7 @@ func input(pkt []byte) (int, error) {
 		}
 		r := C.pbuf_take_at(newBuf, unsafe.Pointer(&pkt[startPos]), C.u16_t(singleCopyLen), C.u16_t(startPos))
 		if r == C.ERR_MEM {
+			log.Errorf("Input pbuf_take_at this should not happen")
 			return 0, errors.New("Input pbuf_take_at this should not happen")
 		}
 		startPos += singleCopyLen
@@ -135,11 +142,13 @@ func input(pkt []byte) (int, error) {
 	}
 	newBuf = C.pbuf_coalesce(buf, C.PBUF_RAW)
 	if newBuf.next != nil {
+		log.Errorf("lwip Input() pbuf_coalesce failed")
 		return 0, errors.New("lwip Input() pbuf_coalesce failed")
 	}
 
 	ierr = C.input(newBuf)
 	if ierr != C.ERR_OK {
+		log.Errorf("lwip Input() fail to input packet, packet not handled")
 		return 0, errors.New("packet not handled")
 	}
 	return pktLen, nil
