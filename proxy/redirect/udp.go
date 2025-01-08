@@ -30,11 +30,11 @@ func NewUDPHandler(target string, timeout time.Duration) core.UDPConnHandler {
 }
 
 func (h *udpHandler) fetchUDPInput(conn core.UDPConn, pc *net.UDPConn) {
-	buf := core.NewBytes(core.BufSize)
+	buf := core.NewBytes(pool.BufSize)
 
 	defer func() {
 		h.Close(conn)
-		core.FreeBytes(buf)
+		pool.FreeBytes(buf)
 	}()
 
 	for {

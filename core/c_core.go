@@ -2,6 +2,7 @@ package core
 
 /*
 #cgo CFLAGS: -I./c/custom -I./c/include
+#include <stdint.h>
 #include "c/core/init.c"
 #include "c/core/def.c"
 #include "c/core/dns.c"

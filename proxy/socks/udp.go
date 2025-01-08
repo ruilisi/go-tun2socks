@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/ruilisi/go-tun2socks/common/log"
+	"github.com/ruilisi/go-tun2socks/component/pool"
 	"github.com/ruilisi/go-tun2socks/core"
 )
 
@@ -38,11 +39,11 @@ func NewUDPHandler(proxyHost string, proxyPort uint16, timeout time.Duration) co
 }
 
 func (h *udpHandler) handleTCP(conn core.UDPConn, c net.Conn) {
-	buf := core.NewBytes(core.BufSize)
+	buf := pool.NewBytes(pool.BufSize)
 
 	defer func() {
 		h.Close(conn)
-		core.FreeBytes(buf)
+		pool.FreeBytes(buf)
 	}()
 
 	for {
@@ -54,11 +55,11 @@ func (h *udpHandler) handleTCP(conn core.UDPConn, c net.Conn) {
 }
 
 func (h *udpHandler) fetchUDPInput(conn core.UDPConn, input net.PacketConn) {
-	buf := core.NewBytes(maxUdpPayloadSize)
+	buf := pool.NewBytes(maxUdpPayloadSize)
 
 	defer func() {
 		h.Close(conn)
-		core.FreeBytes(buf)
+		pool.FreeBytes(buf)
 	}()
 
 	for {

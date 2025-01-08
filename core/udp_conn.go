@@ -8,6 +8,7 @@ import "C"
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"sync"
 	"unsafe"
@@ -46,12 +47,13 @@ func newUDPConn(pcb *C.struct_udp_pcb, handler UDPConnHandler, localIP C.ip_addr
 		localIP:   localIP,
 		localPort: localPort,
 		state:     udpConnecting,
-		pending:   make(chan *udpPacket, 64), // To hold the early packets on the connection
+		pending:   make(chan *udpPacket, 128), // To hold the early packets on the connection
 	}
 
 	go func() {
 		err := handler.Connect(conn, remoteAddr)
 		if err != nil {
+			log.Printf("handler.Connect err: %v, conn: %v", err, conn)
 			conn.Close()
 		} else {
 			conn.Lock()
@@ -64,6 +66,7 @@ func newUDPConn(pcb *C.struct_udp_pcb, handler UDPConnHandler, localIP C.ip_addr
 				case pkt := <-conn.pending:
 					err := conn.handler.ReceiveTo(conn, pkt.data, pkt.addr)
 					if err != nil {
+						log.Printf("conn.handler.ReceiveTo err: %v, conn: %v", err, conn)
 						break DrainPending
 					}
 					continue DrainPending
@@ -137,7 +140,6 @@ func (conn *udpConn) WriteFrom(data []byte, addr *net.UDPAddr) (int, error) {
 	}
 	lwipMutex.Lock()
 	defer lwipMutex.Unlock()
-
 	// FIXME any memory leaks?
 	cremoteIP := C.struct_ip_addr{}
 	if err := ipAddrATON(addr.IP.String(), &cremoteIP); err != nil {
@@ -159,6 +161,8 @@ func (conn *udpConn) WriteFrom(data []byte, addr *net.UDPAddr) (int, error) {
 	// Why this way? Please check lwip/core/dns.c
 	buf := C.pbuf_alloc(C.PBUF_TRANSPORT, C.u16_t(dataLen), C.PBUF_RAM)
 	defer func(pb *C.struct_pbuf) {
+		lwipMutex.Lock()
+		defer lwipMutex.Unlock()
 		if pb != nil {
 			C.pbuf_free(pb)
 			pb = nil

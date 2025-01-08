@@ -4,8 +4,8 @@
 
 A tun2socks implementation written in Go.
 
-> If you're looking for an easy to use `tun2socks` implementation for iOS, you might be interested in [`leaf`](https://github.com/eycorsican/leaf) and [`ileaf`](https://github.com/eycorsican/ileaf).
-> `leaf` [implements `tun2socks`](https://github.com/eycorsican/leaf/tree/master/leaf/src/proxy/tun/netstack) and it's written in Rust, with significantly less memory usage and significantly better performance compares to the Go version.
+> If you're looking for an easy to use `tun2socks` implementation for iOS, you might be interested in [`leaf`](https://github.com/ruilisi/leaf) and [`ileaf`](https://github.com/ruilisi/ileaf).
+> `leaf` [implements `tun2socks`](https://github.com/ruilisi/leaf/tree/master/leaf/src/proxy/tun/netstack) and it's written in Rust, with significantly less memory usage and significantly better performance compares to the Go version.
 
 To run the tun2socks command line program, depending on OS, you may need to run it as root, create the TUN interface and/or configure IP address of the interface manually. Moreover, you should add corresponding routes to the routing table manually. Mind that you often want to use some different system DNS resolvers, and your proxy server should support UDP.
 
@@ -22,4 +22,4 @@ It's also recommended to write your own TUN layer to connect the TUN interface a
 The following projects are using go-tun2socks:
 
 - https://github.com/mellow-io/mellow
-- https://github.com/eycorsican/kitsunebi-android
+- https://github.com/ruilisi/kitsunebi-android

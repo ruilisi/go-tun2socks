@@ -1,11 +1,5 @@
 package core
 
-/*
-#cgo CFLAGS: -I./c/custom -I./c/include
-#include "lwip/tcp.h"
-#include <stdlib.h>
-*/
-import "C"
 import (
 	"net"
 	"strconv"
