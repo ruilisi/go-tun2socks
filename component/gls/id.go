@@ -1,9 +1,9 @@
 package gls
 
 import (
-	"github.com/v2pro/plz/reflect2"
-	"log"
 	"unsafe"
+
+	"github.com/v2pro/plz/reflect2"
 )
 
 // offset for go1.4
@@ -16,7 +16,6 @@ func init() {
 	}
 	goidField := gType.FieldByName("goid")
 	goidOffset = goidField.Offset()
-	log.Printf("goidOffset: %v", goidOffset)
 }
 
 // GoID returns the goroutine id of current goroutine
