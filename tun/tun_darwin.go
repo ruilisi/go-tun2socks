@@ -42,7 +42,7 @@ func randomIPv6LinkLocalAddr() string {
 	return net.IP(ip).To16().String()
 }
 
-func OpenTunDevice(name, addr, gw, mask string, dnsServers []string, persist bool) (io.ReadWriteCloser, error) {
+func OpenTunDevice(name, addr, gw, mask string, persist bool) (io.ReadWriteCloser, error) {
 	genErr := func(out []byte, err error) error {
 		if err == nil {
 			return nil
