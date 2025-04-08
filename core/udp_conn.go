@@ -185,8 +185,11 @@ func (conn *udpConn) WriteFrom(data []byte, addr *net.UDPAddr) (int, error) {
 		startPos += singleCopyLen
 		remaining -= singleCopyLen
 	}
-	C.udp_sendto(conn.pcb, buf, &conn.localIP, conn.localPort, &cremoteIP, C.u16_t(addr.Port))
+	ret := C.udp_sendto(conn.pcb, buf, &conn.localIP, conn.localPort, &cremoteIP, C.u16_t(addr.Port))
 
+	if ret != 0 {
+		return 0, fmt.Errorf("[tun2socks] udp_sendto error %d", ret)
+	}
 	return dataLen, nil
 }
 
