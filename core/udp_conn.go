@@ -53,7 +53,7 @@ func newUDPConn(pcb *C.struct_udp_pcb, handler UDPConnHandler, localIP C.ip_addr
 	go func() {
 		err := handler.Connect(conn, remoteAddr)
 		if err != nil {
-			log.Printf("handler.Connect err: %v, conn: %v", err, conn)
+			log.Printf("[tun2socks/Connect] %s err: %v ", remoteAddr, err)
 			conn.Close()
 		} else {
 			conn.Lock()
@@ -66,7 +66,7 @@ func newUDPConn(pcb *C.struct_udp_pcb, handler UDPConnHandler, localIP C.ip_addr
 				case pkt := <-conn.pending:
 					err := conn.handler.ReceiveTo(conn, pkt.data, pkt.addr)
 					if err != nil {
-						log.Printf("conn.handler.ReceiveTo err: %v, conn: %v", err, conn)
+						log.Printf("[tun2socks/ReceiveTo] %s err: %v ", remoteAddr, err)
 						break DrainPending
 					}
 					continue DrainPending
