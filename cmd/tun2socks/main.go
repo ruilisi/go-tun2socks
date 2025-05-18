@@ -60,7 +60,7 @@ const (
 var flagCreaters = map[cmdFlag]func(){
 	fProxyServer: func() {
 		if args.ProxyServer == nil {
-			args.ProxyServer = flag.String("proxyServer", "1.2.3.4:1087", "Proxy server address")
+			args.ProxyServer = flag.String("proxyServer", "127.0.0.1:1080", "Proxy server address")
 		}
 	},
 	fUdpTimeout: func() {
