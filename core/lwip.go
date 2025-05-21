@@ -321,6 +321,10 @@ func (s *lwipStack) Close(t LWIPSysCheckTimeoutsClosingType) error {
 	return nil
 }
 
+const (
+	MTU = 1500
+)
+
 func init() {
 	// Initialize lwIP.
 	//
@@ -334,5 +338,5 @@ func init() {
 	lwipInit()
 
 	// Set MTU.
-	C.netif_list.mtu = 1500
+	C.netif_list.mtu = MTU
 }
