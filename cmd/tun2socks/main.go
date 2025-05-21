@@ -82,10 +82,6 @@ var args = new(CmdArgs)
 
 var lwipWriter io.Writer
 
-const (
-	MTU = 1500
-)
-
 func main() {
 	args.Version = flag.Bool("version", false, "Print version")
 	args.TunName = flag.String("tunName", "tun1", "TUN interface name")
@@ -168,7 +164,7 @@ func main() {
 
 	// Copy packets from tun device to lwip stack, it's the main loop.
 	go func() {
-		_, err := io.CopyBuffer(lwipWriter, tunDev, make([]byte, MTU))
+		_, err := io.CopyBuffer(lwipWriter, tunDev, make([]byte, core.MTU))
 		if err != nil {
 			log.Fatalf("copying data failed: %v", err)
 		}
