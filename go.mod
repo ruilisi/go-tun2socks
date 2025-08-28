@@ -1,6 +1,6 @@
 module github.com/ruilisi/go-tun2socks
 
-go 1.25.0
+go 1.23.10
 
 require (
 	github.com/djherbis/buffer v1.1.0
