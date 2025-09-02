@@ -48,7 +48,7 @@ func OpenTunDevice(name, addr, gw, mask string, dns []string, persist bool) (io.
 			return nil
 		}
 		if len(out) != 0 {
-			return errors.New(fmt.Sprintf("%v, output: %s", err, out))
+			return fmt.Errorf("%v, output: %s", err, out)
 		}
 		return err
 	}
@@ -56,7 +56,7 @@ func OpenTunDevice(name, addr, gw, mask string, dns []string, persist bool) (io.
 		DeviceType: water.TUN,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create water tun: %v", err)
 	}
 	name = tunDev.Name()
 	ip := net.ParseIP(addr)
@@ -79,7 +79,7 @@ func OpenTunDevice(name, addr, gw, mask string, dns []string, persist bool) (io.
 	} else if isIPv6(ip) {
 		prefixlen, err := strconv.Atoi(mask)
 		if err != nil {
-			return nil, errors.New(fmt.Sprintf("parse IPv6 prefixlen failed: %v", err))
+			return nil, fmt.Errorf("parse IPv6 prefixlen failed: %v", err)
 		}
 		params = fmt.Sprintf("%s inet6 %s/%d", name, addr, prefixlen)
 		out, err := exec.Command("ifconfig", strings.Split(params, " ")...).Output()
