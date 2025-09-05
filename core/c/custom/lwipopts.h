@@ -79,7 +79,7 @@
 #warning THIS_IS_32BIT_ENVIRONMENT
 #define CPU_WORD_LEN     32
 #elif INTPTR_MAX == INT64_MAX
-#warning THIS_IS_64BIT_ENVIRONMENT
+// #warning THIS_IS_64BIT_ENVIRONMENT
 #define CPU_WORD_LEN     64
 #else
 #error "Environment not 32 or 64-bit."
@@ -95,7 +95,7 @@
 //#pragma message "The value of MEM_ALIGNMENT: " XSTR(MEM_ALIGNMENT)
 
 //#define MEM_SIZE                       (512 * _KB)
-#define MEM_SIZE                       (4 * _MB)
+#define MEM_SIZE                       (32 * _MB)
 #define MEMP_NUM_PBUF                   512
 #define PBUF_POOL_SIZE                  512
 #define PBUF_POOL_BUFSIZE               1600
@@ -128,7 +128,7 @@
 
 #if MEM_SIZE >= (32 * _MB)
 #define TCP_WND                         ((64 * _KB) - 1)
-#define TCP_SND_BUF                     (128 * _KB)
+#define TCP_SND_BUF                     (64 * _KB)
 #elif MEM_SIZE >= (16 * _MB)
 #define TCP_WND                         ((64 * _KB) - 1)
 #define TCP_SND_BUF                     (64  * _KB)
