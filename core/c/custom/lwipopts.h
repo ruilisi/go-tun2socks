@@ -97,7 +97,7 @@
 //#define MEM_SIZE                       (512 * _KB)
 #define MEM_SIZE                       (32 * _MB)
 #define MEMP_NUM_PBUF                   512
-#define PBUF_POOL_SIZE                  512
+#define PBUF_POOL_SIZE                  5120
 #define PBUF_POOL_BUFSIZE               1600
 
 #if MEM_SIZE >= (32 * _MB)
@@ -114,9 +114,9 @@
 #define MEMP_NUM_REASSDATA              5
 #endif
 
-#define MEMP_NUM_TCP_PCB_LISTEN 5
-#define MEMP_NUM_TCP_PCB 1024
-#define MEMP_NUM_UDP_PCB 512
+#define MEMP_NUM_TCP_PCB_LISTEN 64
+#define MEMP_NUM_TCP_PCB 5120
+#define MEMP_NUM_UDP_PCB 2560
 
 #define LWIP_TCP_TIMESTAMPS             1
 #define IP_REASS_MAX_PBUFS              (MEMP_NUM_PBUF / 2)
