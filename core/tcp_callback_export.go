@@ -51,22 +51,20 @@ func tcpRecvFn(arg unsafe.Pointer, tpcb *C.struct_tcp_pcb, p *C.struct_pbuf, pas
 	// Only free the pbuf when returning ERR_OK or ERR_ABRT,
 	// otherwise must not free the pbuf.
 	lwipMutex.Lock()
-	defer lwipMutex.Unlock()
 	shouldFreePbuf := false
-	defer func(pb *C.struct_pbuf, shouldFreePbuf *bool) {
-		lwipMutex.Lock()
-		defer lwipMutex.Unlock()
-		if pb != nil && *shouldFreePbuf {
-			C.pbuf_free(pb)
-			pb = nil
-		}
-	}(p, &shouldFreePbuf)
-
+	
+	// Handle error cases under lock
 	if passedInErr != C.ERR_OK && passedInErr != C.ERR_ABRT {
 		// TODO: unknown err passed in, not sure if it's correct
 		log.Printf("tcpRecvFn passed in err: %v , begin abort", int(passedInErr))
 		C.tcp_abort(tpcb)
 		shouldFreePbuf = true
+		lwipMutex.Unlock()
+		if p != nil && shouldFreePbuf {
+			lwipMutex.Lock()
+			C.pbuf_free(p)
+			lwipMutex.Unlock()
+		}
 		return C.ERR_ABRT
 	}
 
@@ -74,43 +72,61 @@ func tcpRecvFn(arg unsafe.Pointer, tpcb *C.struct_tcp_pcb, p *C.struct_pbuf, pas
 
 	if p == nil {
 		// Peer closed, EOF.
+		lwipMutex.Unlock()
 		err := conn.LocalClosed()
+		lwipMutex.Lock()
 		switch err.(*lwipError).Code {
 		case LWIP_ERR_ABRT:
 			shouldFreePbuf = true
-			return C.ERR_ABRT
 		case LWIP_ERR_OK:
 			shouldFreePbuf = true
-			return C.ERR_OK
 		default:
 			log.Printf("unexpected error conn.LocalClosed() %v", err.(*lwipError).Error())
 			shouldFreePbuf = true
+		}
+		lwipMutex.Unlock()
+		if p != nil && shouldFreePbuf {
+			lwipMutex.Lock()
+			C.pbuf_free(p)
+			lwipMutex.Unlock()
+		}
+		switch err.(*lwipError).Code {
+		case LWIP_ERR_ABRT:
+			return C.ERR_ABRT
+		default:
 			return C.ERR_OK
 		}
 	}
 
+	// Copy data from pbuf into Go buffer while holding lock
 	var buf []byte
 	var totlen = int(p.tot_len)
+	buf = pool.NewBytes(totlen)
 	if p.tot_len == p.len {
-		buf = (*[1 << 30]byte)(unsafe.Pointer(p.payload))[:totlen:totlen]
+		copy(buf[:totlen], (*[1 << 30]byte)(unsafe.Pointer(p.payload))[:totlen:totlen])
 	} else {
-		buf = pool.NewBytes(totlen)
-		defer pool.FreeBytes(buf)
 		C.pbuf_copy_partial(p, unsafe.Pointer(&buf[0]), p.tot_len, 0)
 	}
+	lwipMutex.Unlock()
 
+	// Call conn.Receive with Go-owned buffer while unlocked
 	rerr := conn.Receive(buf[:totlen])
+	
+	// Free the pooled buffer
+	pool.FreeBytes(buf)
+	
+	// Handle the result and any required lwIP API calls under lock
+	lwipMutex.Lock()
 	if rerr != nil {
 		switch rerr.(*lwipError).Code {
 		case LWIP_ERR_ABRT:
 			shouldFreePbuf = true
-			return C.ERR_ABRT
 		case LWIP_ERR_OK:
 			shouldFreePbuf = true
-			return C.ERR_OK
 		case LWIP_ERR_CONN:
 			// Tell lwip we can't receive data at the moment,
 			// lwip will store it and try again later.
+			lwipMutex.Unlock()
 			return C.ERR_CONN
 		case LWIP_ERR_CLSD:
 			// lwip won't handle ERR_CLSD error for us, manually
@@ -118,15 +134,33 @@ func tcpRecvFn(arg unsafe.Pointer, tpcb *C.struct_tcp_pcb, p *C.struct_pbuf, pas
 			shouldFreePbuf = true
 			C.tcp_recved(tpcb, p.tot_len)
 			C.tcp_shutdown(tpcb, 1, 0)
-			return C.ERR_OK
 		default:
 			log.Printf("unexpected error conn.Receive() %v", rerr.(*lwipError).Error())
 			shouldFreePbuf = true
+		}
+	} else {
+		shouldFreePbuf = true
+	}
+	lwipMutex.Unlock()
+	
+	// Free pbuf if needed
+	if p != nil && shouldFreePbuf {
+		lwipMutex.Lock()
+		C.pbuf_free(p)
+		lwipMutex.Unlock()
+	}
+	
+	if rerr != nil {
+		switch rerr.(*lwipError).Code {
+		case LWIP_ERR_ABRT:
+			return C.ERR_ABRT
+		case LWIP_ERR_CLSD:
+			return C.ERR_OK
+		default:
 			return C.ERR_OK
 		}
 	}
 
-	shouldFreePbuf = true
 	return C.ERR_OK
 }
 
