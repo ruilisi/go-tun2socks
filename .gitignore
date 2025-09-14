@@ -4,3 +4,4 @@
 .github
 .gitauthor
 .vscode
+*.test

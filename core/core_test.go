@@ -56,7 +56,7 @@ func setupUDP(t *testing.T) (LWIPStack, *fakeUDPHandler) {
 	// tests will interfere with each other.
 	udpConns = sync.Map{}
 
-	s := NewLWIPStack()
+	s := NewLWIPStack(false, false)
 	// This channel is buffered because the first Write->ReceiveTo can either be synchronous or
 	// asynchronous, depending on the results of a race during "connection".
 	h := &fakeUDPHandler{packets: make(chan []byte, 1)}
