@@ -76,7 +76,7 @@
 
 /* 32bit and 64bit CPU */
 #if INTPTR_MAX == INT32_MAX
-#warning THIS_IS_32BIT_ENVIRONMENT
+// #warning THIS_IS_32BIT_ENVIRONMENT
 #define CPU_WORD_LEN     32
 #elif INTPTR_MAX == INT64_MAX
 // #warning THIS_IS_64BIT_ENVIRONMENT
