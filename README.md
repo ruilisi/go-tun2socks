@@ -1,7 +1,5 @@
 # go-tun2socks
 
-[![Build Status](https://travis-ci.com/ruilisi/go-tun2socks.svg?branch=master)](https://travis-ci.com/ruilisi/go-tun2socks)
-
 A tun2socks implementation written in Go.
 
 > If you're looking for an easy to use `tun2socks` implementation for iOS, you might be interested in [`leaf`](https://github.com/ruilisi/leaf) and [`ileaf`](https://github.com/ruilisi/ileaf).
