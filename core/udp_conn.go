@@ -11,8 +11,6 @@ import (
 	"net"
 	"sync/atomic"
 	"unsafe"
-
-	"github.com/ruilisi/stellar-proxy/log"
 )
 
 type udpConnState uint32
@@ -52,40 +50,15 @@ func newUDPConn(pcb *C.struct_udp_pcb, handler UDPConnHandler, localIP C.ip_addr
 		localPort: localPort,
 		pending:   make(chan *udpPacket, 128),
 	}
-	conn.state.Store(uint32(udpConnecting))
+	err := handler.Connect(conn, remoteAddr)
 
-	go func() {
-		err := handler.Connect(conn, remoteAddr)
-		if err != nil {
-			log.E("[tun2socks/Connect] %s err: %v ", remoteAddr, err)
-			conn.Close()
-			return
-		}
+	if err != nil {
+		conn.state.Store(uint32(udpClosed))
+		conn.Close()
+		return nil, fmt.Errorf("[tun2socks/Connect] %s err: %v ", remoteAddr, err)
+	}
 
-		// Only transition to connected if we are still in connecting state.
-		if !conn.state.CompareAndSwap(uint32(udpConnecting), uint32(udpConnected)) {
-			// Connection was closed while dialing; do not proceed.
-			return
-		}
-
-		// Drain any pending early packets now that we are connected.
-	DrainPending:
-		for {
-			select {
-			case pkt := <-conn.pending:
-				err := conn.handler.ReceiveTo(conn, pkt.data, pkt.addr)
-				if err != nil {
-					log.E("[tun2socks/ReceiveTo] %s err: %v ", remoteAddr, err)
-					break DrainPending
-				}
-				continue DrainPending
-			default:
-				// No more pending; allow GC by dropping reference.
-				conn.pending = nil
-				break DrainPending
-			}
-		}
-	}()
+	conn.state.Store(uint32(udpConnected))
 
 	return conn, nil
 }
@@ -106,26 +79,7 @@ func (conn *udpConn) ensureStateConnected() error {
 	return nil
 }
 
-// enqueueEarlyPacket stores a copy of the packet if the connection is still connecting.
-// Returns true if the packet was enqueued.
-func (conn *udpConn) enqueueEarlyPacket(data []byte, addr *net.UDPAddr) bool {
-	if udpConnState(conn.state.Load()) != udpConnecting {
-		return false
-	}
-	pkt := &udpPacket{data: append([]byte(nil), data...), addr: addr}
-	select {
-	case conn.pending <- pkt:
-		return true
-	default:
-		// queue full; drop
-		return false
-	}
-}
-
 func (conn *udpConn) ReceiveTo(data []byte, addr *net.UDPAddr) error {
-	if conn.enqueueEarlyPacket(data, addr) {
-		return nil
-	}
 	if err := conn.ensureStateConnected(); err != nil {
 		return err
 	}
