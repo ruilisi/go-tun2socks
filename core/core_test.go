@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/hex"
 	"net"
-	"sync"
 	"testing"
 )
 
@@ -28,23 +27,18 @@ func decode(s string) []byte {
 	return b
 }
 
-// This is a trivial UDP handler that sends each received packet to a channel for inspection.
 type fakeUDPHandler struct {
 	UDPConnHandler
 	packets chan []byte
 }
 
-func (h *fakeUDPHandler) Connect(conn UDPConn, target *net.UDPAddr) error {
-	return nil
-}
-
+func (h *fakeUDPHandler) Connect(conn UDPConn, target *net.UDPAddr) error { return nil }
 func (h *fakeUDPHandler) ReceiveTo(conn UDPConn, data []byte, addr *net.UDPAddr) error {
 	h.packets <- data
 	return nil
 }
 
 func setupUDP(t *testing.T) (LWIPStack, *fakeUDPHandler) {
-	// Reinitialize source data before each test to avoid interference.
 	ntp = decode(ntpHex)
 	ntpPayload = ntp[ipv4Header+udpHeader:]
 	frag1 = decode(frag1Hex)
@@ -52,13 +46,12 @@ func setupUDP(t *testing.T) (LWIPStack, *fakeUDPHandler) {
 	fragPayload = append([]byte(nil), frag1[ipv4Header+udpHeader:]...)
 	fragPayload = append(fragPayload, frag2[ipv4Header:]...)
 
-	// Reset the set of known UDP connections to empty before each test.  Otherwise, the
-	// tests will interfere with each other.
-	udpConns = sync.Map{}
+	// Reset registry (replaces prior sync.Map reset).
+	udpConns = newUDPConnRegistry()
 
-	s := NewLWIPStack()
-	// This channel is buffered because the first Write->ReceiveTo can either be synchronous or
-	// asynchronous, depending on the results of a race during "connection".
+	// Use the existing signature parameters as needed; adjust if your version differs.
+	s := NewLWIPStack(true, true)
+
 	h := &fakeUDPHandler{packets: make(chan []byte, 1)}
 	RegisterUDPConnHandler(h)
 	return s, h
@@ -82,14 +75,12 @@ func assertEqual(actual, expected []byte, t *testing.T) {
 	}
 }
 
-// Basic test for sending a single UDP packet.
 func TestUDP(t *testing.T) {
 	s, h := setupUDP(t)
 	write(s, ntp, t)
 	assertEqual(<-h.packets, ntpPayload, t)
 }
 
-// Send a fragmented UDP packet.
 func TestUDPFragmentation(t *testing.T) {
 	s, h := setupUDP(t)
 	write(s, frag1, t)
@@ -97,7 +88,6 @@ func TestUDPFragmentation(t *testing.T) {
 	assertEqual(<-h.packets, fragPayload, t)
 }
 
-// Write UDP fragments out of order.
 func TestUDPFragmentReordering(t *testing.T) {
 	s, h := setupUDP(t)
 	write(s, frag2, t)
@@ -105,30 +95,22 @@ func TestUDPFragmentReordering(t *testing.T) {
 	assertEqual(<-h.packets, fragPayload, t)
 }
 
-// Send a fragmented UDP packet where fragments reuse the same buffer.
 func TestUDPFragmentationMemory(t *testing.T) {
 	s, h := setupUDP(t)
 	buf := make([]byte, len(frag1))
-
 	checkedCopy(buf, frag1, t)
 	write(s, buf[:len(frag1)], t)
-
 	checkedCopy(buf, frag2, t)
 	write(s, buf[:len(frag2)], t)
-
 	assertEqual(<-h.packets, fragPayload, t)
 }
 
-// Regression test for a segmentation fault.
 func TestUDPFragmentationMemoryAndReordering(t *testing.T) {
 	s, h := setupUDP(t)
 	buf := make([]byte, len(frag1))
-
 	checkedCopy(buf, frag2, t)
 	write(s, buf[:len(frag2)], t)
-
 	checkedCopy(buf, frag1, t)
 	write(s, buf[:len(frag1)], t)
-
 	assertEqual(<-h.packets, fragPayload, t)
 }

@@ -1,5 +1,7 @@
 package core
 
+import "fmt"
+
 // Error codes defined in lwIP.
 // /** Definitions for error constants. */
 // typedef enum {
@@ -56,5 +58,5 @@ func NewLWIPError(code int) error {
 }
 
 func (e *lwipError) Error() string {
-	return "error code " + string(e.Code)
+	return fmt.Sprintf("error code %d", e.Code)
 }
