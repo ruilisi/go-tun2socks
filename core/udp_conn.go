@@ -78,10 +78,8 @@ func newUDPConn(pcb *C.struct_udp_pcb, handler UDPConnHandler, localIP C.ip_addr
 					log.E("[tun2socks/ReceiveTo] %s err: %v ", remoteAddr, err)
 					break DrainPending
 				}
-				continue DrainPending
 			default:
-				// No more pending; allow GC by dropping reference.
-				conn.pending = nil
+				// No more pending packets
 				break DrainPending
 			}
 		}
@@ -102,29 +100,20 @@ func (conn *udpConn) ensureStateConnected() error {
 		return nil
 	case udpConnecting:
 		return errors.New("not connected")
-	}
-	return nil
-}
-
-// enqueueEarlyPacket stores a copy of the packet if the connection is still connecting.
-// Returns true if the packet was enqueued.
-func (conn *udpConn) enqueueEarlyPacket(data []byte, addr *net.UDPAddr) bool {
-	if udpConnState(conn.state.Load()) != udpConnecting {
-		return false
-	}
-	pkt := &udpPacket{data: append([]byte(nil), data...), addr: addr}
-	select {
-	case conn.pending <- pkt:
-		return true
 	default:
-		// queue full; drop
-		return false
+		panic(fmt.Sprintf("unknown udp connection state: %d", conn.state.Load()))
 	}
 }
 
 func (conn *udpConn) ReceiveTo(data []byte, addr *net.UDPAddr) error {
-	if conn.enqueueEarlyPacket(data, addr) {
-		return nil
+	if udpConnState(conn.state.Load()) == udpConnecting {
+		pkt := &udpPacket{data: append([]byte(nil), data...), addr: addr}
+		select {
+		case conn.pending <- pkt:
+			return nil
+		default:
+			return errors.New("failed to pend packet when udp is connecting")
+		}
 	}
 	if err := conn.ensureStateConnected(); err != nil {
 		return err
@@ -151,9 +140,6 @@ func (conn *udpConn) WriteFrom(data []byte, addr *net.UDPAddr) (int, error) {
 		return 0, err
 	}
 	dataLen := len(data)
-	if dataLen <= 0 {
-		return dataLen, nil
-	}
 	remaining := dataLen
 	startPos := 0
 
