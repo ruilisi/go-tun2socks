@@ -15,7 +15,7 @@ import (
 	"github.com/ruilisi/go-tun2socks/common/log"
 	_ "github.com/ruilisi/go-tun2socks/common/log/simple" // Register a simple logger.
 	"github.com/ruilisi/go-tun2socks/core"
-	"github.com/ruilisi/go-tun2socks/tun"
+	"github.com/ruilisi/netutils/tun"
 )
 
 var version = "undefined"
