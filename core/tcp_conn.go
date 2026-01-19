@@ -190,7 +190,6 @@ func (conn *tcpConn) receiveCheck() error {
 	default:
 		panic("unexpected error")
 	}
-	return nil
 }
 
 func (conn *tcpConn) Receive(data []byte) error {
