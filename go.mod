@@ -17,8 +17,13 @@ require (
 )
 
 require (
+	github.com/google/uuid v1.5.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
+	github.com/ruilisi/netutils v1.1.5 // indirect
+	github.com/xtaci/smux v1.5.24 // indirect
+	golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0 // indirect
 	golang.org/x/mod v0.26.0 // indirect
 	golang.org/x/sync v0.16.0 // indirect
+	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.35.0 // indirect
 )

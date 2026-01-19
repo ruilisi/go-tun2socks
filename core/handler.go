@@ -1,23 +1,14 @@
 package core
 
 import (
-	"net"
+	spcore "github.com/ruilisi/stellar-proxy/core"
 )
 
-// TCPConnHandler handles TCP connections comming from TUN.
-type TCPConnHandler interface {
-	// Handle handles the conn for target.
-	Handle(conn net.Conn, target *net.TCPAddr) error
-}
+// TCPConnHandler is re-exported from stellar-proxy/core
+type TCPConnHandler = spcore.TCPConnHandler
 
-// UDPConnHandler handles UDP connections comming from TUN.
-type UDPConnHandler interface {
-	// Connect connects the proxy server. Note that target can be nil.
-	Connect(conn UDPConn, target *net.UDPAddr) error
-
-	// ReceiveTo will be called when data arrives from TUN.
-	ReceiveTo(conn UDPConn, data []byte, addr *net.UDPAddr) error
-}
+// UDPConnHandler is re-exported from stellar-proxy/core
+type UDPConnHandler = spcore.UDPConnHandler
 
 var tcpConnHandler TCPConnHandler
 var udpConnHandler UDPConnHandler
